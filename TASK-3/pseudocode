@@ -1,0 +1,43 @@
+BAŞLA
+
+// --- 1. Kimlik Doğrulama ---
+TEKRAR
+    TC_No ← Kullanıcıdan_TC_Gir()
+    Eğer Kimlik_Dogrula(TC_No) ise
+        Devam Et
+    değilse
+        Yaz("Geçersiz TC Kimlik Numarası. Tekrar deneyin.")
+SONSUZA_KADAR
+
+// --- 2. Poliklinik Seçimi ---
+Poliklinikler ← Poliklinik_Listesini_Getir()
+Poliklinik_Secimi ← Kullanıcıdan_Poliklinik_Sec(Poliklinikler)
+
+// --- 3. Doktor Listesi Gösterme ve Seçme ---
+Doktorlar ← Doktor_Listesi_Getir(Poliklinik_Secimi)
+Doktor_Secimi ← Kullanıcıdan_Doktor_Sec(Doktorlar)
+
+// --- 4. Uygun Saatleri Gösterme ve Seçim ---
+TEKRAR
+    Saatler ← Uygun_Saatleri_Getir(Doktor_Secimi)
+    Eğer Saatler boş ise
+        Yaz("Bu doktor için uygun saat yok. Lütfen başka bir doktor seçin.")
+        Doktor_Secimi ← Kullanıcıdan_Doktor_Sec(Doktorlar)
+    değilse
+        Saat_Secimi ← Kullanıcıdan_Saat_Sec(Saatler)
+        ÇIKIŞ
+SONSUZA_KADAR
+
+// --- 5. Randevu Onayı ---
+Yaz("Seçiminiz: ", Poliklinik_Secimi, Doktor_Secimi, Saat_Secimi)
+Onay ← Kullanıcıdan_Onay_Al()
+Eğer Onay = "Evet" ise
+    Randevu_Kaydet(TC_No, Doktor_Secimi, Saat_Secimi)
+    SMS_Gonder(TC_No, "Randevunuz başarıyla oluşturuldu: " & Saat_Secimi)
+    Yaz("Randevunuz oluşturuldu ve SMS gönderildi.")
+değilse
+    Yaz("Randevu iptal edildi.")
+
+// --- 6. Sistem Sonu ---
+Yaz("İyi günler.")
+BİTİR
