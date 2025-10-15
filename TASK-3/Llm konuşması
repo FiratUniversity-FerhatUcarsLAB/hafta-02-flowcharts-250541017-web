@@ -1,0 +1,306 @@
+Hastanede randevu alma ve tahlil sonu¸clarına eri¸sim sistemini modelleyin. özellikle dikkat etme gereken konular Sistem Gereksinimleri:
+Hasta kimlik do˘grulama (TC No)
+˙
+I¸slem se¸cimi: 1-Randevu Al, 2-Tahlil Sonucu G¨or (ko¸sul)
+Randevu mod¨ul¨u: Poliklinik se¸cimi, doktor listesi, uygun saatler
+(d¨ong¨u)
+Randevu onayı ve SMS g¨onderimi
+Tahlil mod¨ul¨u: Tahlil var mı kontrol¨u (ko¸sul)
+Sonu¸c hazır mı kontrol¨u (ko¸sul)
+Sonu¸c g¨or¨unt¨uleme veya bekleme mesajı
+Sonu¸cları PDF indir se¸cene˘gi
+Ba¸ska i¸slem yapmak ister misiniz? (d¨ong¨u)
+Hastanede randevu alma ve tahlil sonuçlarına erişim sisteminin modellemesini yaparken sistem gereksinimlerine göre bir akış diyagramı (flowchart) veya yazılı bir sistem modeli çıkarılabilir. Aşağıda, sistemin işleyişini adım adım anlatan metinsel modellemeyi sunuyorum:
+
+🎯 Hedef:
+
+Hastaların T.C. Kimlik numarası ile giriş yaptığı, randevu alabileceği ve tahlil sonuçlarına erişebileceği bir sistemin modellenmesi.
+
+🛠️ Sistem Gereksinimleri ve Modül Modeli
+1. Kimlik Doğrulama
+
+Girdi: T.C. Kimlik Numarası
+
+İşlem: Doğrulama kontrolü yapılır.
+
+Doğruysa → İşlem Seçimine geç
+
+Yanlışsa → Hata mesajı + tekrar deneme hakkı (döngü)
+
+2. İşlem Seçimi (Koşul)
+
+Seçenekler:
+
+Randevu Al
+
+Tahlil Sonucu Gör
+
+Seçime göre uygun modüle yönlendirme
+
+🏥 Randevu Modülü (Seçim: 1)
+2.1. Poliklinik Seçimi
+
+Kullanıcı mevcut poliklinikler listesinden seçim yapar.
+
+2.2. Doktor Listesi ve Seçimi
+
+Seçilen polikliniğe ait doktorlar listelenir.
+
+Kullanıcı doktor seçimi yapar.
+
+2.3. Uygun Saatlerin Listelenmesi
+
+Seçilen doktora ait müsait randevu saatleri listelenir.
+
+Kullanıcı saat seçimi yapar.
+
+Eğer saat müsait değilse → döngü ile tekrar seçim yaptırılır.
+
+2.4. Randevu Onayı
+
+Seçilen poliklinik, doktor ve saat bilgileri özetlenir.
+
+Kullanıcıdan onay alınır.
+
+2.5. SMS Gönderimi
+
+Onay sonrası sistem, kayıtlı telefona SMS gönderir.
+
+“Randevunuz [tarih] saat [saat]’te [doktor] ile [poliklinik]tedir.”
+
+🧪 Tahlil Modülü (Seçim: 2)
+3.1. Tahlil Var mı? (Koşul)
+
+Kullanıcının sistemde kayıtlı tahlil bilgisi kontrol edilir.
+
+Yoksa → “Tahlil kaydı bulunamadı.” mesajı verilir.
+
+Varsa → Sonraki adıma geçilir.
+
+3.2. Tahlil Sonucu Hazır mı? (Koşul)
+
+Tahlilin sonucu sisteme düşmüş mü?
+
+Evet → Sonuç Görüntüleme ekranına geç
+
+Hayır → “Tahlil sonucunuz henüz hazır değil, lütfen daha sonra tekrar deneyiniz.”
+
+3.3. Sonucu Görüntüleme
+
+Tahlil sonuçları kullanıcıya gösterilir.
+
+Sonucun ayrıntılı PDF formatında indirilmesi için “PDF Olarak İndir” butonu gösterilir.
+
+🔁 Yeni İşlem Döngüsü
+
+Kullanıcıya soru: “Başka bir işlem yapmak ister misiniz?”
+
+Evet → İşlem Seçimine geri dön
+
+Hayır → Sistemden çıkış
+
+⚠️ Özellikle Dikkat Edilmesi Gereken Konular:
+Konu	Açıklama
+Kimlik Doğrulama	Güvenlik açısından kritik. Yanlış girişler sınırlandırılmalı.
+Zaman Uyuşmazlığı	Aynı randevu saatine birden fazla talep varsa yarış durumu engellenmeli (concurrency control)
+Veri Doğruluğu	Tahlil sonuçları ve randevular güncel ve doğru olmalı.
+Kullanıcı Dostu Arayüz	Poliklinik/doktor/saat seçimi kolay anlaşılır olmalı.
+Bilgilendirme	Tüm adımlarda kullanıcıya açık mesajlarla yönlendirme yapılmalı.
+PDF İndirme Güvenliği	Sonuçların gizliliği korunmalı. PDF dosyaları şifreli olabilir.
+SMS Entegrasyonu	Gerçek zamanlı SMS gönderimi için bir API (örneğin: Twilio) ile entegrasyon gerekebilir.
+Sistem Akış Özeti (Kısa)
+1. TC Kimlik No Girişi → Doğrulama
+2. İşlem Seçimi:
+   a. Randevu Al
+     → Poliklinik → Doktor → Saat → Onay → SMS
+   b. Tahlil Sonucu Gör
+     → Tahlil var mı? → Sonuç hazır mı? → Göster / Bekle → PDF indir
+3. Başka işlem ister misiniz? → Evet/Hayır
+İstersen bu modeli bir akış diyagramı (flowchart) şeklinde çizebilir ya da bir yazılım tasarımı (örneğin UML ile) hâline getirebiliriz. Hangisini istersin?
+“Hastane randevu sistemi i¸cin algoritma: kimlik do˘grulama, poliklinik
+se¸cimi, doktor listesi g¨or¨unt¨uleme, uygun saatleri g¨osterme, randevu
+onaylama ve SMS g¨onderme. Pseudocode yaz.”
+Aşağıda, Hastane Randevu Sistemi için kimlik doğrulamadan SMS gönderimine kadar olan süreci kapsayan bir pseudocode (yapay kod) örneği verilmiştir.
+
+🧠 Amaç
+
+Hastanın TC Kimlik Numarası ile giriş yaptığı, poliklinik, doktor ve uygun saat seçimiyle randevu oluşturduğu ve sonunda SMS gönderildiği bir algoritmanın yazımıdır.
+
+📜 Pseudocode: Hastane Randevu SistemiBAŞLA
+
+// --- 1. Kimlik Doğrulama ---
+TEKRAR
+    TC_No ← Kullanıcıdan_TC_Gir()
+    Eğer Kimlik_Dogrula(TC_No) ise
+        Devam Et
+    değilse
+        Yaz("Geçersiz TC Kimlik Numarası. Tekrar deneyin.")
+SONSUZA_KADAR
+
+// --- 2. Poliklinik Seçimi ---
+Poliklinikler ← Poliklinik_Listesini_Getir()
+Poliklinik_Secimi ← Kullanıcıdan_Poliklinik_Sec(Poliklinikler)
+
+// --- 3. Doktor Listesi Gösterme ve Seçme ---
+Doktorlar ← Doktor_Listesi_Getir(Poliklinik_Secimi)
+Doktor_Secimi ← Kullanıcıdan_Doktor_Sec(Doktorlar)
+
+// --- 4. Uygun Saatleri Gösterme ve Seçim ---
+TEKRAR
+    Saatler ← Uygun_Saatleri_Getir(Doktor_Secimi)
+    Eğer Saatler boş ise
+        Yaz("Bu doktor için uygun saat yok. Lütfen başka bir doktor seçin.")
+        Doktor_Secimi ← Kullanıcıdan_Doktor_Sec(Doktorlar)
+    değilse
+        Saat_Secimi ← Kullanıcıdan_Saat_Sec(Saatler)
+        ÇIKIŞ
+SONSUZA_KADAR
+
+// --- 5. Randevu Onayı ---
+Yaz("Seçiminiz: ", Poliklinik_Secimi, Doktor_Secimi, Saat_Secimi)
+Onay ← Kullanıcıdan_Onay_Al()
+Eğer Onay = "Evet" ise
+    Randevu_Kaydet(TC_No, Doktor_Secimi, Saat_Secimi)
+    SMS_Gonder(TC_No, "Randevunuz başarıyla oluşturuldu: " & Saat_Secimi)
+    Yaz("Randevunuz oluşturuldu ve SMS gönderildi.")
+değilse
+    Yaz("Randevu iptal edildi.")
+
+// --- 6. Sistem Sonu ---
+Yaz("İyi günler.")
+BİTİR
+Şunu dedin:
+“Tahlil sonucu g¨or¨unt¨uleme sistemi: kimlik do˘grulama, tahlil varlı˘gı
+kontrol¨u, sonu¸c hazır mı kontrol¨u, g¨or¨unt¨uleme veya bekleme mesajı, PDF
+indirme. Pseudocode yaz.”
+Aşağıda, Tahlil Sonucu Görüntüleme Sistemi için adım adım ilerleyen bir pseudocode (yapay kod) yer almaktadır. Bu algoritma, hastanın TC Kimlik numarası ile giriş yapmasını, tahlil sonuçlarının varlığını ve hazır olup olmadığını kontrol etmeyi ve PDF indirme seçeneğini kapsar.
+
+📜 Pseudocode: Tahlil Sonucu Görüntüleme SistemiBAŞLA
+
+// --- 1. Kimlik Doğrulama ---
+TEKRAR
+    TC_No ← Kullanıcıdan_TC_Gir()
+    Eğer Kimlik_Dogrula(TC_No) ise
+        Devam Et
+    değilse
+        Yaz("Geçersiz TC Kimlik Numarası. Lütfen tekrar deneyin.")
+SONSUZA_KADAR
+
+// --- 2. Tahlil Varlığı Kontrolü ---
+Tahliller ← Tahlil_Kaydi_Sorgula(TC_No)
+
+Eğer Tahliller boş ise
+    Yaz("Sistemde kayıtlı bir tahlil bulunamadı.")
+    GİT → SON
+değilse
+    Devam Et
+
+// --- 3. Sonuç Hazır mı? Kontrolü ---
+Sonuc ← Tahlil_Sonuc_Kontrol(TC_No)
+
+Eğer Sonuc = "Hazır" ise
+    Yaz("Tahlil sonuçlarınız hazır.")
+    Sonuc_Verisi ← Tahlil_Sonucunu_Getir(TC_No)
+    Yaz("Sonuç:", Sonuc_Verisi)
+
+    // --- 4. PDF İndirme Seçeneği ---
+    İndirilsinMi ← Kullanıcıdan_Soru("Sonucu PDF olarak indirmek ister misiniz? (E/H)")
+
+    Eğer İndirilsinMi = "E" ise
+        PDF_Olustur_ve_Indir(Sonuc_Verisi)
+        Yaz("PDF indirildi.")
+    değilse
+        Yaz("PDF indirme iptal edildi.")
+
+değilse
+    Yaz("Tahlil sonucunuz henüz hazır değil. Lütfen daha sonra tekrar deneyiniz.")
+
+// --- 5. Sistem Sonu ---
+SON:
+Yaz("İyi günler.")
+BİTİR
+Şunu dedin:
+Son Adım: Birle¸stirme
+Ana men¨u ile iki mod¨ul¨u birle¸stirin
+DOT kodunda her mod¨ul¨u ayrı subgraph olarak d¨uzenleyebilirsinizHarika! Şimdi hastane sistemi için iki modülü (1️⃣ Randevu Alma, 2️⃣ Tahlil Sonucu Görüntüleme) bir ana menü altında birleştirip, DOT dili ile bir Graphviz diyagramı şeklinde modelleyelim. DOT dili, sistem akışlarını görselleştirmek için kullanılır ve subgraph yapısıyla modülleri mantıksal olarak ayırabiliriz.
+
+✅ Amaç:
+
+TC Kimlik doğrulaması sonrası kullanıcıya 2 seçenek sunulsun:
+
+Randevu Al
+
+Tahlil Sonucu Görüntüle
+
+Seçilen işleme göre ilgili modüle yönlendirilsin.
+
+İşlem sonrası kullanıcıya yeniden ana menüye dönme seçeneği sunulsun.
+
+🧩 DOT Kodu ile Sistem Akışı (subgraph yapısı dahil)digraph HastaneSistemi {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontname="Arial"];
+
+    // Giriş
+    Giris [label="TC Kimlik Doğrulama"];
+
+    AnaMenu [label="Ana Menü:\n1. Randevu Al\n2. Tahlil Sonucu Gör", shape=diamond];
+
+    // Subgraph: Randevu Modülü
+    subgraph cluster_randevu {
+        label="Randevu Modülü";
+        style=dashed;
+
+        R1 [label="Poliklinik Seçimi"];
+        R2 [label="Doktor Seçimi"];
+        R3 [label="Uygun Saat Seçimi"];
+        R4 [label="Randevu Onayı"];
+        R5 [label="SMS Gönderimi"];
+
+        R1 -> R2 -> R3 -> R4 -> R5;
+    }
+
+    // Subgraph: Tahlil Modülü
+    subgraph cluster_tahlil {
+        label="Tahlil Modülü";
+        style=dashed;
+
+        T1 [label="Tahlil Kaydı Var mı?"];
+        T2 [label="Sonuç Hazır mı?"];
+        T3a [label="Sonuçları Göster"];
+        T3b [label="Sonuç Bekleniyor"];
+        T4 [label="PDF İndir"];
+
+        T1 -> T2;
+        T2 -> T3a [label="Evet"];
+        T2 -> T3b [label="Hayır"];
+        T3a -> T4;
+    }
+
+    // Ana akış bağlantıları
+    Giris -> AnaMenu;
+    AnaMenu -> R1 [label="1"];
+    AnaMenu -> T1 [label="2"];
+
+    // İşlem sonrası dönüş
+    R5 -> AnaMenu [label="Başka işlem?"];
+    T4 -> AnaMenu [label="Başka işlem?"];
+    T3b -> AnaMenu [label="Başka işlem?"];
+
+    // Sistem çıkışı
+    AnaMenu -> Cikis [label="Hayır"];
+    Cikis [label="Çıkış", shape=oval, style=filled, fillcolor=lightgray];
+}
+🎯 Açıklamalar:
+
+subgraph cluster_randevu: Randevu ile ilgili işlemleri gruplar.
+
+subgraph cluster_tahlil: Tahlil sonucu işlemlerini kapsar.
+
+Tüm modüller Ana Menü üzerinden seçiliyor ve sonunda tekrar menüye dönme şansı veriliyor.
+
+Çıkış oval ve lightgray olarak tanımlandı, genelde bu şekilde son düğümler belirtilir.
+
+🛠️ Kullanım:
+
+Bu DOT kodunu bir Graphviz destekli araçta (örneğin: Graphviz Online
+) çalıştırarak diyagramı görselleştirebilirsin.
