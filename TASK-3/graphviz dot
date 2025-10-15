@@ -1,0 +1,54 @@
+digraph HastaneSistemi {
+    rankdir=LR;
+    node [shape=box, style=rounded, fontname="Arial"];
+
+    // Giriş
+    Giris [label="TC Kimlik Doğrulama"];
+
+    AnaMenu [label="Ana Menü:\n1. Randevu Al\n2. Tahlil Sonucu Gör", shape=diamond];
+
+    // Subgraph: Randevu Modülü
+    subgraph cluster_randevu {
+        label="Randevu Modülü";
+        style=dashed;
+
+        R1 [label="Poliklinik Seçimi"];
+        R2 [label="Doktor Seçimi"];
+        R3 [label="Uygun Saat Seçimi"];
+        R4 [label="Randevu Onayı"];
+        R5 [label="SMS Gönderimi"];
+
+        R1 -> R2 -> R3 -> R4 -> R5;
+    }
+
+    // Subgraph: Tahlil Modülü
+    subgraph cluster_tahlil {
+        label="Tahlil Modülü";
+        style=dashed;
+
+        T1 [label="Tahlil Kaydı Var mı?"];
+        T2 [label="Sonuç Hazır mı?"];
+        T3a [label="Sonuçları Göster"];
+        T3b [label="Sonuç Bekleniyor"];
+        T4 [label="PDF İndir"];
+
+        T1 -> T2;
+        T2 -> T3a [label="Evet"];
+        T2 -> T3b [label="Hayır"];
+        T3a -> T4;
+    }
+
+    // Ana akış bağlantıları
+    Giris -> AnaMenu;
+    AnaMenu -> R1 [label="1"];
+    AnaMenu -> T1 [label="2"];
+
+    // İşlem sonrası dönüş
+    R5 -> AnaMenu [label="Başka işlem?"];
+    T4 -> AnaMenu [label="Başka işlem?"];
+    T3b -> AnaMenu [label="Başka işlem?"];
+
+    // Sistem çıkışı
+    AnaMenu -> Cikis [label="Hayır"];
+    Cikis [label="Çıkış", shape=oval, style=filled, fillcolor=lightgray];
+}
