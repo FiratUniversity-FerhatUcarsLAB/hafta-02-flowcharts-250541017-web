@@ -1,0 +1,103 @@
+digraph E_TICARET_SISTEMI {
+    rankdir=TB;
+    node [shape=rectangle, style=rounded, fontname="Arial", fontsize=11];
+
+    BASLA [label="BAŞLA SISTEM", shape=ellipse, style=filled, fillcolor=lightyellow];
+    BITIR [label="BİTİR SISTEM", shape=ellipse, style=filled, fillcolor=lightyellow];
+
+    // Kullanıcı Girişi
+    G1 [label="KULLANICI GİRİŞİ BAŞLA"];
+    G2 [label="eposta ve şifre al"];
+    G3 [label="Bilgiler doğru mu?", shape=diamond, style=filled, fillcolor=lightblue];
+    G4 [label="Giriş başarılı", shape=box];
+    G5 [label="Hatalı giriş! Deneme +1", shape=box];
+    G6 [label="3 deneme doldu mu?", shape=diamond, style=filled, fillcolor=lightblue];
+    G7 [label="Hesap kilitlendi\nSistemden çık", shape=box];
+
+    // Sepet işlemleri
+    S1 [label="SEPET İŞLEMLERİ BAŞLA"];
+    S2 [label="Ürün eklemek istiyor mu?", shape=diamond, style=filled, fillcolor=lightblue];
+    S3 [label="Ürün kodu ve adet al"];
+    S4 [label="Stok yeterli mi?", shape=diamond, style=filled, fillcolor=lightblue];
+    S5 [label="Ürünü sepete ekle"];
+    S6 [label="Yetersiz stok uyarısı"];
+    S7 [label="Başka ürün eklemek istiyor mu?", shape=diamond, style=filled, fillcolor=lightblue];
+
+    // İndirim kodu
+    I1 [label="İNDİRİM KODU BAŞLA"];
+    I2 [label="Kullanıcının indirim kodu var mı?", shape=diamond, style=filled, fillcolor=lightblue];
+    I3 [label="Kod geçerli mi?", shape=diamond, style=filled, fillcolor=lightblue];
+    I4 [label="İndirim uygula"];
+    I5 [label="Kod geçersiz uyarısı"];
+
+    // Kargo
+    K1 [label="KARGO HESAPLAMA BAŞLA"];
+    K2 [label="Teslimat adresi al"];
+    K3 [label="Kargo tutarı hesapla"];
+    K4 [label="Sepet toplamı ≥ 1000 TL mi?", shape=diamond, style=filled, fillcolor=lightblue];
+    K5 [label="Kargo ücretsiz"];
+    K6 [label="Kargo ücretli"];
+
+    // Ödeme
+    O1 [label="ÖDEME AŞAMASI BAŞLA"];
+    O2 [label="Ödeme yöntemi seçimi"];
+    O3 [label="Kredi kartı mı?", shape=diamond, style=filled, fillcolor=lightblue];
+    O4 [label="Kart bilgilerini al"];
+    O5 [label="Banka onayı alındı mı?", shape=diamond, style=filled, fillcolor=lightblue];
+    O6 [label="Ödeme başarılı\nSiparişi kaydet"];
+    O7 [label="Ödeme başarısız uyarısı"];
+    O8 [label="Kapıda ödeme seçildi\nSiparişi kaydet"];
+
+    // Sipariş onayı
+    P1 [label="SİPARİŞ ONAY BAŞLA"];
+    P2 [label="Sipariş numarası oluştur"];
+    P3 [label="E-posta/SMS gönder"];
+    P4 [label="SİPARİŞ TAMAMLANDI", shape=box, style=filled, fillcolor=lightgreen];
+
+    // Bağlantılar
+    BASLA -> G1 -> G2 -> G3;
+    G3 -> G4 [label="EVET"];
+    G3 -> G5 [label="HAYIR"];
+    G5 -> G6;
+    G6 -> G2 [label="HAYIR"];
+    G6 -> G7 [label="EVET"];
+    G4 -> S1;
+    G7 -> BITIR;
+
+    S1 -> S2;
+    S2 -> S3 [label="EVET"];
+    S2 -> I1 [label="HAYIR"];
+    S3 -> S4;
+    S4 -> S5 [label="EVET"];
+    S4 -> S6 [label="HAYIR"];
+    S5 -> S7;
+    S6 -> S7;
+    S7 -> S2 [label="EVET"];
+    S7 -> I1 [label="HAYIR"];
+
+    I1 -> I2;
+    I2 -> I3 [label="EVET"];
+    I2 -> K1 [label="HAYIR"];
+    I3 -> I4 [label="EVET"];
+    I3 -> I5 [label="HAYIR"];
+    I4 -> K1;
+    I5 -> K1;
+
+    K1 -> K2 -> K3 -> K4;
+    K4 -> K5 [label="EVET"];
+    K4 -> K6 [label="HAYIR"];
+    K5 -> O1;
+    K6 -> O1;
+
+    O1 -> O2 -> O3;
+    O3 -> O4 [label="EVET"];
+    O3 -> O8 [label="HAYIR"];
+    O4 -> O5;
+    O5 -> O6 [label="EVET"];
+    O5 -> O7 [label="HAYIR"];
+    O6 -> P1;
+    O7 -> O2;
+    O8 -> P1;
+
+    P1 -> P2 -> P3 -> P4 -> BITIR;
+}
