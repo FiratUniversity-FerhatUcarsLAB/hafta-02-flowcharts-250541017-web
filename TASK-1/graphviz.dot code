@@ -1,0 +1,73 @@
+digraph ATM_ParaCekme {
+  rankdir=TB;
+  node [fontname="Verdana", fontsize=10];
+
+  // --- Başlangıç ve PIN kontrolü ---
+  start [shape=oval, label="BAŞLA"];
+  init [shape=box, label="bakiye=5000\ngünlük_limit=2000\ndeneme_sayısı=0\nmax_deneme=3"];
+  ask_pin [shape=parallelogram, label="PIN gir:"];
+  check_pin [shape=diamond, label="PIN doğru mu?"];
+  wrong_pin [shape=box, label="deneme_sayısı = deneme_sayısı + 1"];
+  three_fail [shape=diamond, label="deneme_sayısı >= 3?"];
+  block [shape=box, label="Kart bloke edildi\n(3 yanlış deneme)"];
+  end_block [shape=oval, label="BİTİR"];
+  pin_ok [shape=box, label="PIN doğru\nHoş geldiniz!"];
+
+  // --- Para çekme işlemleri ---
+  ask_amount [shape=parallelogram, label="Çekilecek tutarı gir:"];
+  check_20 [shape=diamond, label="Tutar 20 TL'nin katı mı?"];
+  err_20 [shape=box, label="Hata: 20 TL'nin katı olmalı"];
+
+  check_limit [shape=diamond, label="Tutar > günlük_limit mi?"];
+  err_limit [shape=box, label="Hata: Günlük limit aşılıyor"];
+
+  check_balance [shape=diamond, label="Tutar > bakiye mi?"];
+  err_balance [shape=box, label="Hata: Yetersiz bakiye"];
+
+  dispense [shape=box, label="bakiye -= tutar\ngünlük_limit -= tutar\nParayı ver"];
+  print_info [shape=box, label="Kalan bakiye yaz"];
+
+  ask_continue [shape=diamond, label="Başka işlem yapmak ister misiniz?"];
+  eject [shape=parallelogram, label="Kart iade edildi"];
+  end [shape=oval, label="BİTİR"];
+
+  // --- Akışlar ---
+  start -> init -> ask_pin;
+  ask_pin -> check_pin;
+
+  // PIN doğru
+  check_pin -> pin_ok [label="EVET"];
+
+  // PIN yanlış
+  check_pin -> wrong_pin [label="HAYIR"];
+  wrong_pin -> three_fail;
+
+  // 3 hatadan sonra çıkış
+  three_fail -> block [label="EVET"];
+  block -> end_block;
+
+  // 3’ten az hata varsa tekrar PIN sor
+  three_fail -> ask_pin [label="HAYIR"];
+
+  // PIN doğruysa para çekme bölümüne geç
+  pin_ok -> ask_amount;
+
+  // Para çekme akışı
+  ask_amount -> check_20;
+  check_20 -> err_20 [label="HAYIR"];
+  err_20 -> ask_amount;
+  check_20 -> check_limit [label="EVET"];
+
+  check_limit -> err_limit [label="EVET"];
+  err_limit -> ask_amount;
+  check_limit -> check_balance [label="HAYIR"];
+
+  check_balance -> err_balance [label="EVET"];
+  err_balance -> ask_amount;
+  check_balance -> dispense [label="HAYIR"];
+
+  dispense -> print_info -> ask_continue;
+  ask_continue -> ask_amount [label="EVET"];
+  ask_continue -> eject [label="HAYIR"];
+  eject -> end;
+}
