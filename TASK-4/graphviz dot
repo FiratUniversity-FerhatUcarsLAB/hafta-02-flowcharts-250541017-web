@@ -1,0 +1,91 @@
+digraph DersKayitSistemi {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+  
+  // --- Düğüm tipleri ---
+  start [shape=oval, label="BAŞLA"];
+  end [shape=oval, label="BİTİR"];
+  input_login [shape=parallelogram, label="Öğrenci No + Şifre Al"];
+  check_login [shape=diamond, label="Giriş Bilgileri Doğru mu?"];
+  login_fail [shape=box, label="Hatalı Giriş - Tekrar Denensin"];
+  
+  show_courses [shape=box, label="Ders Listesini Görüntüle"];
+  loop_courses [shape=diamond, label="Daha Fazla Ders Var mı?"];
+  
+  check_capacity [shape=diamond, label="Kontenjan Var mı?"];
+  fail_capacity [shape=box, label="Kontenjan Doldu"];
+  
+  check_prereq [shape=diamond, label="Ön Koşullar Sağlanıyor mu?"];
+  fail_prereq [shape=box, label="Ön Koşul Eksik"];
+  
+  check_time [shape=diamond, label="Zaman Çakışması Var mı?"];
+  fail_time [shape=box, label="Zaman Çakışması Tespit Edildi"];
+  
+  check_credit [shape=diamond, label="Kredi Limiti Aşılıyor mu?"];
+  fail_credit [shape=box, label="Kredi Limiti Aşıldı"];
+  
+  check_gpa [shape=diamond, label="GPA < 2.5 mi?"];
+  advisor_approval [shape=box, label="Danışman Onayı Al"];
+  advisor_denied [shape=box, label="Onay Reddedildi"];
+  
+  add_course [shape=box, label="Ders Kayda Ekle"];
+  remove_course [shape=box, label="Ders Silmek İstiyor mu?"];
+  
+  show_summary [shape=box, label="Kayıt Özeti Göster"];
+  confirm [shape=diamond, label="Öğrenci Kayıtı Onaylıyor mu?"];
+  registration_done [shape=box, label="Kayıt Tamamlandı"];
+  registration_edit [shape=box, label="Kayıt Düzenleniyor"];
+  
+  // --- Akış ---
+  start -> input_login;
+  input_login -> check_login;
+  check_login -> login_fail [label="Hayır"];
+  login_fail -> input_login;
+  check_login -> show_courses [label="Evet"];
+  
+  show_courses -> loop_courses;
+  loop_courses -> check_capacity [label="Evet"];
+  loop_courses -> remove_course [label="Hayır"];
+  
+  // Kontenjan kontrolü
+  check_capacity -> check_prereq [label="Evet"];
+  check_capacity -> fail_capacity [label="Hayır"];
+  fail_capacity -> loop_courses;
+  
+  // Ön koşul kontrolü
+  check_prereq -> check_time [label="Evet"];
+  check_prereq -> fail_prereq [label="Hayır"];
+  fail_prereq -> loop_courses;
+  
+  // Zaman çakışması kontrolü
+  check_time -> check_credit [label="Hayır (çakışma yok)"];
+  check_time -> fail_time [label="Evet"];
+  fail_time -> loop_courses;
+  
+  // Kredi limiti kontrolü
+  check_credit -> check_gpa [label="Hayır (limit aşılmıyor)"];
+  check_credit -> fail_credit [label="Evet"];
+  fail_credit -> loop_courses;
+  
+  // Danışman onayı
+  check_gpa -> advisor_approval [label="Evet (GPA < 2.5)"];
+  check_gpa -> add_course [label="Hayır (GPA ≥ 2.5)"];
+  
+  advisor_approval -> add_course [label="Onaylandı"];
+  advisor_approval -> advisor_denied [label="Reddedildi"];
+  advisor_denied -> loop_courses;
+  
+  // Ders eklendiğinde döngüye dön
+  add_course -> loop_courses [label="Sonraki ders"];
+  
+  // Ders silme opsiyonu
+  remove_course -> show_summary [label="Hayır"];
+  remove_course -> show_courses [label="Evet, ders sil"];
+  
+  // Kayıt özeti ve onay
+  show_summary -> confirm;
+  confirm -> registration_done [label="Evet"];
+  confirm -> registration_edit [label="Hayır"];
+  registration_edit -> show_courses;
+  registration_done -> end;
+}
