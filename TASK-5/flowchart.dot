@@ -1,0 +1,62 @@
+digraph SmartHomeSecurity {
+  rankdir=TB;
+  node [shape=box, style=rounded, fontsize=12];
+
+  start [label="BAŞLA"];
+  init [label="SISTEM_BASLAT()\nALARM_DURUMU <- 'KAPALI'"];
+  loopStart [label="Ana Döngü Başlangıcı"];
+  readSensors [label="TÜM SENSÖRLERİ OKU\n(Hareket, Kapı, Pencere, Cam)"];
+  threatCheck [label="Herhangi bir tehdit var mı?", shape=diamond];
+  
+  levelHigh [label="Cam kırıldı → Seviye 3 (Yüksek)"];
+  levelMed [label="Hareket + Kapı Açık → Seviye 2 (Orta)"];
+  levelLow [label="Tek sensör aktif → Seviye 1 (Düşük)"];
+  noThreat [label="Tehdit yok → Alarm Kapalı\nSeviye 0"];
+
+  alarmActive [label="ALARM AKTİF Mİ?", shape=diamond];
+  activate [label="KAMERA_AKTIVE_ET()\nSIREN_CALISTIR()"];
+
+  notifLow [label="BİLDİRİM: Düşük Tehdit\n(App)"];
+  notifMed [label="BİLDİRİM: Orta Tehdit\n(SMS + App)"];
+  notifHigh [label="BİLDİRİM: YÜKSEK TEHDİT\n(SMS + App + Email)"];
+
+  resetCheck [label="Sıfırlama komutu geldi mi?", shape=diamond];
+  resetYes [label="ALARM SIFIRLANDI\nKAMERA_DURDUR()\nSIREN_DURDUR()\nBİLDİRİM: 'Alarm sıfırlandı'"];
+  
+  waitNode [label="BEKLE (2 saniye)"];
+  
+  end [label="BITIR", shape=oval];
+
+  // --- Akışlar ---
+  start -> init -> loopStart -> readSensors;
+  readSensors -> threatCheck;
+
+  threatCheck -> levelHigh [label="Cam kırıldı"];
+  threatCheck -> levelMed [label="Hareket + Kapı"];
+  threatCheck -> levelLow [label="Tek sensör"];
+  threatCheck -> noThreat [label="Hayır"];
+
+  levelHigh -> activate;
+  levelMed -> activate;
+  levelLow -> activate;
+  noThreat -> waitNode;
+
+  activate -> alarmActive;
+  alarmActive -> notifLow [label="Seviye 1"];
+  alarmActive -> notifMed [label="Seviye 2"];
+  alarmActive -> notifHigh [label="Seviye 3"];
+
+  notifLow -> resetCheck;
+  notifMed -> resetCheck;
+  notifHigh -> resetCheck;
+
+  resetCheck -> resetYes [label="Evet"];
+  resetCheck -> waitNode [label="Hayır"];
+
+  resetYes -> waitNode;
+
+  waitNode -> readSensors [label="Sürekli", color=blue, fontcolor=blue]; // Sonsuz döngü oku
+
+  // Opsiyonel durdurma çıkışı (manuel kapatma vb.)
+  loopStart -> end [label="Sistem kapatıldıysa", style=dashed, color=gray];
+}
