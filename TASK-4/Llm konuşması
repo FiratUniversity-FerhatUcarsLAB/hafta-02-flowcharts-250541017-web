@@ -1,0 +1,346 @@
+Universite Ders Kayıt Sistemi ile ilgili graphviz dot dilinde akış diyağramı hazırlyacaz Sistem Gereksinimleri:
+O˘grenci giri¸si (¨o˘grenci no + ¸sifre) ¨
+Ders listesini g¨or¨unt¨uleme (d¨ong¨u)
+Her ders i¸cin:
+Kontenjan kontrol¨u (ko¸sul)
+On ko¸sul dersi kontrol¨u (ko¸sul) ¨
+Zaman ¸cakı¸sması kontrol¨u (ko¸sul)
+Kredi limiti kontrol¨u (toplam ≤ 35) (ko¸sul)
+Ders ekleme/¸cıkarma (d¨ong¨u)
+Danı¸sman onayı gerekli mi? (GPA ¡ 2.5 ise) (ko¸sul)
+Kayıt ¨ozeti g¨osterme ve kayıt onaylama şunlara dikkat ederek öncelikle 1. Genel Yapı
+“Universite ders kayıt sisteminin genel akı¸sını a¸cıkla: giri¸s, ders listesi, ders ¨
+se¸cimi, kontroller, onaylama.”
+2. Kontrol Mekanizmaları
+“Ders kaydında yapılması gereken kontrolleri listele: kontenjan, ¨on ko¸sul,
+zaman ¸cakı¸sması, kredi limiti, danı¸sman onayı.” baz alarak başlıyacaz 
+/*
+1. Genel Yapı
+- Giriş: Öğrenci girişi (öğrenci no + şifre)
+- Ders listesi görüntülenir (döngü halinde her bir ders için işlem)
+- Ders seçimi: her ders için kontroller çalışır
+- Tüm kontrollerden sonra kayıt özeti gösterilir ve öğrenci onaylar
+
+2. Kontrol Mekanizmaları
+- Kontenjan kontrolü
+- Ön koşul dersi kontrolü
+- Zaman çakışması kontrolü
+- Kredi limiti kontrolü (toplam ≤ 35)
+- Danışman onayı (GPA < 2.5 ise gerekli)
+
+Aşağıda Graphviz DOT formatında akış diyagramı bulunmaktadır. Bu dosyayı
+"dot -Tpng Universite_Ders_Kayit_Systemi.dot -o output.png" komutuyla
+görselleştirebilirsiniz.
+*/
+
+digraph UnivCourseReg {
+  rankdir=TB;
+  fontsize=12;
+  node [fontname="Helvetica"];
+
+  /* Temel düğüm şekilleri */
+  start [shape=oval, label="BAŞLA"];
+  end [shape=oval, label="BİTİR"];
+  process [shape=box];
+  decision [shape=diamond, style=filled, fillcolor=lightgrey];
+  IO [shape=parallelogram];
+
+  /* Giriş ve kullanıcı doğrulama */
+  login [shape=box, label="Öğrenci Girişi\n(öğrenci no + şifre)"];
+  auth_ok [shape=diamond, label="Giriş Başarılı?"];
+  auth_fail [shape=box, label="Hata: Giriş Başarısız\n(Giriş ekranına dön)"];
+
+  /* Ders listesi ve döngü */
+  show_courses [shape=box, label="Ders Listesini Görüntüle\n(her ders için döngü)"];
+  course_loop [shape=diamond, label="Daha fazla ders var mı?\n(sonraki dersi ele al)"];
+
+  /* Her ders için kontroller */
+  check_capacity [shape=diamond, label="Kontenjan var mı?"];
+  check_prereq [shape=diamond, label="Ön koşullar sağlanıyor mu?"];
+  check_time [shape=diamond, label="Zaman çakışması var mı?"];
+  check_credit [shape=diamond, label="Kredi limiti aşılıyor mu?\n(toplam + ders_kredisi > 35)"];
+  consult_needed [shape=diamond, label="Danışman onayı gerekli mi?\n(GPA < 2.5)"];
+
+  /* Kullanıcı işlemleri */
+  add_course [shape=box, label="Derse Ekle"];
+  remove_course [shape=box, label="Dersten Çıkar"];
+  notify_advisor [shape=box, label="Danışmana Onay İsteği Gönder"];
+  show_summary [shape=box, label="Kayıt Özeti Göster"];
+  confirm_registration [shape=diamond, label="Kayıt Onaylıyor musunuz?"];
+
+  /* Hata/engelleme mesajları */
+  fail_capacity [shape=box, label="Hata: Kontenjan Yok\n(Derse eklenemez)"];
+  fail_prereq [shape=box, label="Hata: Ön Koşul Eksik\n(Derse eklenemez)"];
+  fail_time [shape=box, label="Hata: Zaman Çakışması\n(Derse eklenemez)"];
+  fail_credit [shape=box, label="Hata: Kredi Limiti Aşılıyor\n(Derse eklenemez)"];
+
+  /* Akış bağlantıları */
+  start -> login;
+  login -> auth_ok;
+  auth_ok -> auth_fail [label="Hayır", color="red"];
+  auth_ok -> show_courses [label="Evet"];
+  auth_fail -> login;
+
+  show_courses -> course_loop;
+  course_loop -> check_capacity [label="Evet (ders var)"];
+  course_loop -> show_summary [label="Hayır (tüm dersler ele alındı)"];
+
+  /* Kontenjan */
+  check_capacity -> check_prereq [label="Evet"];
+  check_capacity -> fail_capacity [label="Hayır"];
+  fail_capacity -> course_loop [label="Sonraki ders"];
+
+  /* Ön koşul */
+  check_prereq -> check_time [label="Evet"];
+  check_prereq -> fail_prereq [label="Hayır"];
+  fail_prereq -> course_loop [label="Sonraki ders"];
+
+  /* Zaman çakışması */
+  check_time -> check_credit [label="Hayır çakışma"];
+  check_time -> fail_time [label="Evet çakışma"];
+  fail_time -> course_loop [label="Sonraki ders"];
+
+  /* Kredi limiti */
+  check_credit -> consult_needed [label="Hayır (limit aşılmıyor)"];
+  check_credit -> fail_credit [label="Evet (limit aşılıyor)"];
+  fail_credit -> course_loop [label="Sonraki ders"];
+
+  /* Danışman onayı */
+  consult_needed -> notify_advisor [label="Evet (GPA < 2.5)"];
+  consult_needed -> add_course [label="Hayır (GPA ≥ 2.5)"];
+
+  notify_advisor -> add_course [label="Onaylandı"];
+  notify_advisor -> course_loop [label="Reddedildi"];
+
+  /* Ders ekleme ve döngüye dönüş */
+  add_course -> course_loop [label="Ders eklendi\n(sonraki ders)"];
+
+  /* Ders silme opsiyonu (kullanıcı seçeneği) */
+  show_courses -> remove_course [label="Dersten çıkmak isterse"];
+  remove_course -> show_courses;
+
+  /* Özet ve onay */
+  show_summary -> confirm_registration;
+  confirm_registration -> end [label="Evet, onayla"];
+  confirm_registration -> show_summary [label="Hayır, düzenle"];
+
+  /* Güvenlik: oturum kapatma veya bitiş */
+  end -> /* boş, sadece bitir */;
+
+  /* Görsel düzenlemeler */
+  { rank=same; check_capacity; check_prereq; check_time; check_credit; consult_needed }
+}
+Hazırladım — Graphviz DOT dosyanız canvas'ta (adı: Universite_Ders_Kayit_Systemi.dot). İçinde:
+
+Genel yapı (giriş, ders listesi, ders seçimi, kontroller, onaylama) açıklaması,
+
+Kontrol mekanizmalarının listesi (kontenjan, ön koşul, zaman çakışması, kredi limiti, danışman onayı),
+
+Ve akış diyagramının tam DOT kodu.
+
+Bunu görselleştirmek isterseniz terminalde aynı dizinde şu komutu çalıştırın:dot -Tpng Universite_Ders_Kayit_Systemi.dot -o UnivDersKayit.png
+veya SVG için:
+dot -Tsvg Universite_Ders_Kayit_Systemi.dot -o UnivDersKayit.svg
+İsterseniz:
+
+DOT kodunda Türkçe veya akış davranışında değişiklik yapayım (ör. GPA eşiğini değiştirme, kredi limitini farklı yapmak),
+
+Diyagramı PNG/SVG olarak oluşturup indirebileceğiniz bir dosya haline getireyim,
+
+Veya bu akışı daha ayrıntılı bir pseudocode / algoritma hâline çevireyim.
+
+Hangi devam adımını istersiniz?
+
+Şunu dedin:
+psuedocode na bakabiliriz
+ChatGPT:
+
+Harika 💪 O zaman yukarıdaki Graphviz diyagramına uygun, adım adım açıklamalı bir pseudocode yazalım.
+İstediğin biçimde — Türkçe, DÖNGÜ / EĞER / İSE / BAŞLA / BİTİR yapısında olacak 👇
+
+🎓 Üniversite Ders Kayıt Sistemi — Pseudocode
+BAŞLA
+
+    // 1. GİRİŞ EKRANI
+    ÖĞRENCİ_NO, ŞİFRE al
+    EĞER (öğrenci_no ve şifre doğru) İSE
+        "Giriş başarılı" yaz
+    DEĞİLSE
+        "Hatalı giriş, tekrar deneyin" yaz
+        GİRİŞ ekranına dön
+    SON
+
+    // 2. DERS LİSTESİ GÖRÜNTÜLEME
+    DERS_LISTESİ göster
+
+    // 3. DERS SEÇİM DÖNGÜSÜ
+    DÖNGÜ her DERS için DERS_LISTESİ içinde
+
+        // 3.1 Kontenjan kontrolü
+        EĞER (DERS.kontenjan > 0) İSE
+            // 3.2 Ön koşul kontrolü
+            EĞER (öğrenci tüm ön koşulları sağlamış mı?) İSE
+                // 3.3 Zaman çakışması kontrolü
+                EĞER (zaman_çakışması yok mu?) İSE
+                    // 3.4 Kredi limiti kontrolü
+                    EĞER (toplam_kredi + DERS.kredi ≤ 35) İSE
+                        // 3.5 Danışman onayı kontrolü
+                        EĞER (öğrenci_GPA < 2.5) İSE
+                            "Danışman onayı bekleniyor" yaz
+                            danışman_onayı ← danışman_onayı_al()
+                            EĞER (danışman_onayı = ONAY) İSE
+                                DERS kayda ekle
+                            DEĞİLSE
+                                "Onay reddedildi, ders eklenmedi" yaz
+                            SON
+                        DEĞİLSE
+                            DERS kayda ekle
+                        SON
+                    DEĞİLSE
+                        "Kredi limiti aşılıyor, ders eklenemedi" yaz
+                    SON
+                DEĞİLSE
+                    "Zaman çakışması tespit edildi, ders eklenemedi" yaz
+                SON
+            DEĞİLSE
+                "Ön koşul dersi eksik, ders eklenemedi" yaz
+            SON
+        DEĞİLSE
+            "Kontenjan dolu, ders eklenemedi" yaz
+        SON
+
+    DÖNGÜ SONU
+
+    // 4. DERS SİLME (isteğe bağlı)
+    EĞER (öğrenci ders silmek istiyor mu?) İSE
+        DERS seç ve sil
+    SON
+
+    // 5. KAYIT ÖZETİ VE ONAY
+    kayıt_özeti_göster()
+    EĞER (öğrenci onaylıyor mu?) İSE
+        "Kayıt tamamlandı" yaz
+    DEĞİLSE
+        "Kayıt düzenleniyor" yaz
+        Geri dön -> DERS_LISTESİ
+    SON
+
+BİTİR
+İstersen bu pseudocode’u:
+
+Renkli biçimlendirilmiş bir PDF veya Word (docx) çıktısı olarak hazırlayabilirim,
+
+ya da Graphviz akışıyla aynı numaralandırmada (1.1, 1.2, 1.3) olacak şekilde daha detaylı hale getirebilirim.
+
+Hangisini istersin? 📄
+
+Şunu dedin:
+“Bu pseudocode’u Graphviz DOT diline ¸cevir. Her kontrol noktasını
+diamond ile g¨oster.”
+ChatGPT:
+
+Mükemmel 👌
+Aşağıda, verdiğim pseudocode’un birebir Graphviz DOT karşılığı var.
+Her kontrol noktası (EĞER) diamond (elmas) biçiminde gösterildi,
+diğer işlemler dikdörtgen (box) veya paralelkenar (girdi/çıktı) biçiminde tanımlandı.
+
+🎓 Universite_Ders_Kayit_Sistemi.dot
+digraph DersKayitSistemi {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+  
+  // --- Düğüm tipleri ---
+  start [shape=oval, label="BAŞLA"];
+  end [shape=oval, label="BİTİR"];
+  input_login [shape=parallelogram, label="Öğrenci No + Şifre Al"];
+  check_login [shape=diamond, label="Giriş Bilgileri Doğru mu?"];
+  login_fail [shape=box, label="Hatalı Giriş - Tekrar Denensin"];
+  
+  show_courses [shape=box, label="Ders Listesini Görüntüle"];
+  loop_courses [shape=diamond, label="Daha Fazla Ders Var mı?"];
+  
+  check_capacity [shape=diamond, label="Kontenjan Var mı?"];
+  fail_capacity [shape=box, label="Kontenjan Doldu"];
+  
+  check_prereq [shape=diamond, label="Ön Koşullar Sağlanıyor mu?"];
+  fail_prereq [shape=box, label="Ön Koşul Eksik"];
+  
+  check_time [shape=diamond, label="Zaman Çakışması Var mı?"];
+  fail_time [shape=box, label="Zaman Çakışması Tespit Edildi"];
+  
+  check_credit [shape=diamond, label="Kredi Limiti Aşılıyor mu?"];
+  fail_credit [shape=box, label="Kredi Limiti Aşıldı"];
+  
+  check_gpa [shape=diamond, label="GPA < 2.5 mi?"];
+  advisor_approval [shape=box, label="Danışman Onayı Al"];
+  advisor_denied [shape=box, label="Onay Reddedildi"];
+  
+  add_course [shape=box, label="Ders Kayda Ekle"];
+  remove_course [shape=box, label="Ders Silmek İstiyor mu?"];
+  
+  show_summary [shape=box, label="Kayıt Özeti Göster"];
+  confirm [shape=diamond, label="Öğrenci Kayıtı Onaylıyor mu?"];
+  registration_done [shape=box, label="Kayıt Tamamlandı"];
+  registration_edit [shape=box, label="Kayıt Düzenleniyor"];
+  
+  // --- Akış ---
+  start -> input_login;
+  input_login -> check_login;
+  check_login -> login_fail [label="Hayır"];
+  login_fail -> input_login;
+  check_login -> show_courses [label="Evet"];
+  
+  show_courses -> loop_courses;
+  loop_courses -> check_capacity [label="Evet"];
+  loop_courses -> remove_course [label="Hayır"];
+  
+  // Kontenjan kontrolü
+  check_capacity -> check_prereq [label="Evet"];
+  check_capacity -> fail_capacity [label="Hayır"];
+  fail_capacity -> loop_courses;
+  
+  // Ön koşul kontrolü
+  check_prereq -> check_time [label="Evet"];
+  check_prereq -> fail_prereq [label="Hayır"];
+  fail_prereq -> loop_courses;
+  
+  // Zaman çakışması kontrolü
+  check_time -> check_credit [label="Hayır (çakışma yok)"];
+  check_time -> fail_time [label="Evet"];
+  fail_time -> loop_courses;
+  
+  // Kredi limiti kontrolü
+  check_credit -> check_gpa [label="Hayır (limit aşılmıyor)"];
+  check_credit -> fail_credit [label="Evet"];
+  fail_credit -> loop_courses;
+  
+  // Danışman onayı
+  check_gpa -> advisor_approval [label="Evet (GPA < 2.5)"];
+  check_gpa -> add_course [label="Hayır (GPA ≥ 2.5)"];
+  
+  advisor_approval -> add_course [label="Onaylandı"];
+  advisor_approval -> advisor_denied [label="Reddedildi"];
+  advisor_denied -> loop_courses;
+  
+  // Ders eklendiğinde döngüye dön
+  add_course -> loop_courses [label="Sonraki ders"];
+  
+  // Ders silme opsiyonu
+  remove_course -> show_summary [label="Hayır"];
+  remove_course -> show_courses [label="Evet, ders sil"];
+  
+  // Kayıt özeti ve onay
+  show_summary -> confirm;
+  confirm -> registration_done [label="Evet"];
+  confirm -> registration_edit [label="Hayır"];
+  registration_edit -> show_courses;
+  registration_done -> end;
+}
+💡 Kullanım:
+Bunu bir .dot dosyasına kaydedip terminalde çalıştırabilirsin:
+dot -Tpng DersKayitSistemi.dot -o DersKayitSistemi.png
+veya SVG için:
+dot -Tsvg DersKayitSistemi.dot -o DersKayitSistemi.svg
+İstersen bu diyagramı görsel (PNG/SVG) olarak benim oluşturmamı ister misin?
+Hazırlayıp direkt olarak burada önizleme şeklinde gösterebilirim.
+
